@@ -1,36 +1,59 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Mini Lead Distribution System
 
-## Getting Started
+## **Setup**
 
-First, run the development server:
+- Node: use Node 18+ (recommended). Install dependencies:
+
+```bash
+npm install
+```
+
+- Create a `.env.local` in the project root with at least the MongoDB connection string:
+
+```env
+MONGODB_URI=mongodb://localhost:27017/?replicaSet=rs0
+MONGODB_DB=mini_lead_distribution_system
+```
+
+- IMPORTANT: MongoDB transactions used by the app require a replica-set or a managed cluster (e.g., Atlas). A standalone mongod does not support multi-document transactions.
+
+### Run
+
+- Start the development server:
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+- Build for production:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+npm run build
+npm start
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### Notes on concurrency & idempotency
 
-## Learn More
+- The app relies on MongoDB transactions and atomic update operations for concurrency control and provider assignment. See [lib/provider-distribution.ts](lib/provider-distribution.ts) for details.
+- Webhook idempotency is enforced by a unique index on `webhookId` and duplicate-key handling (see `processSubscriptionWebhook` in [lib/provider-distribution.ts](lib/provider-distribution.ts)).
 
-To learn more about Next.js, take a look at the following resources:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## **Allocation algorithm**
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- The allocation runs inside a MongoDB transaction so provider state updates and lead insertion are atomic.
+- State rows for each provider/month are upserted before allocation (`ensureMonthlyStateRecords`).
+- Mandatory providers are assigned first using atomic `findOneAndUpdate` with `{ monthlyAssigned: { $lt: MONTHLY_QUOTA } }` and `$inc` to prevent over-assigning.
+- Optional slots are filled one-by-one using `findOneAndUpdate` sorted by `lastAssignedAt`, then `monthlyAssigned`, then `providerId` to choose the least-recently-used and least-loaded provider.
+- Each assigned provider's `monthlyAssigned` is incremented and `lastAssignedAt` updated to maintain fair rotation under concurrent requests.
+- See [lib/provider-distribution.ts](lib/provider-distribution.ts) for the implementation details and error handling.
 
-## Deploy on Vercel
+## **Concurrency handling**
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+- The system relies on MongoDB transactions and atomic update operations. Allocation runs inside `session.withTransaction`, and assignment steps use atomic `findOneAndUpdate` and `bulkWrite` with filters like `{ monthlyAssigned: { $lt: MONTHLY_QUOTA } }` and `$inc` to avoid over-assigning.
+- Provider state rows are upserted before allocation (`ensureMonthlyStateRecords`) to ensure consistent state under concurrent requests.
+- Optional provider selection is deterministic and fair: selection sorts by `lastAssignedAt`, then `monthlyAssigned`, then `providerId` to choose the least-recently-used, least-loaded provider.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## **Webhook idempotency**
+
+- A unique index on `webhookId` prevents duplicate webhook events. The webhook handler inserts the event inside the same transaction that applies the reset, and duplicate-key errors (Mongo error code `11000`) are caught to indicate the webhook was already processed.
+- See `processSubscriptionWebhook` and `ensureIndexes` in [lib/provider-distribution.ts](lib/provider-distribution.ts).

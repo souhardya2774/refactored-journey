@@ -20,6 +20,9 @@ export default function Home() {
           <Link href="/dashboard" className="rounded-md bg-sky-600 px-4 py-2 text-white hover:bg-sky-700">
             View Dashboard
           </Link>
+          <Link href="/request-service" className="rounded-md bg-sky-600 px-4 py-2 text-white hover:bg-sky-700">
+            View Request Service
+          </Link>
           <Link href="/test-tools" className="rounded-md bg-emerald-600 px-4 py-2 text-white hover:bg-emerald-700">
             Open Test Tools
           </Link>

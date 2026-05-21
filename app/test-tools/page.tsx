@@ -193,7 +193,7 @@ export default function TestToolsPage() {
         </button>
       </div>
 
-      <div className="mt-6 rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
+      <div className="mt-6 rounded-lg border border-slate-200 p-4 shadow-sm">
         <h2 className="text-lg font-medium">Activity</h2>
         {status && <p className="mt-2 text-slate-700">{status}</p>}
         {logEntries.length === 0 ? (

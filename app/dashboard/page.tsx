@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useState } from "react";
 
 type AssignedLead = {
@@ -56,6 +57,9 @@ export default function DashboardPage() {
   return (
     <main className="p-6">
       <h1 className="text-2xl font-semibold mb-4">Dashboard</h1>
+      <Link href="/request-service" className="rounded-md bg-sky-600 px-4 py-2 text-white hover:bg-sky-700">
+        View Request Service
+      </Link>
       {loading && <p>Loading provider data...</p>}
       {error && <p className="text-red-600">{error}</p>}
       {!loading && !error && providerData.length === 0 && <p>No provider data available.</p>}

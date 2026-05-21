@@ -8,9 +8,19 @@ function getMonthKey(date: Date): string {
   return `${date.getUTCFullYear()}-${String(date.getUTCMonth() + 1).padStart(2, '0')}`
 }
 
+function getMonthDateRange(date: Date): { start: Date; end: Date } {
+  const year = date.getUTCFullYear()
+  const month = date.getUTCMonth()
+  const start = new Date(Date.UTC(year, month, 1, 0, 0, 0, 0))
+  const end = new Date(Date.UTC(year, month + 1, 1, 0, 0, 0, 0))
+  return { start, end }
+}
+
 export async function GET() {
   const db = await connectToDatabase()
-  const month = getMonthKey(new Date())
+  const now = new Date()
+  const month = getMonthKey(now)
+  const { start: monthStart, end: monthEnd } = getMonthDateRange(now)
 
   const stateCol = db.collection('provider_monthly_states')
   const leadCol = db.collection('leads')
@@ -21,7 +31,7 @@ export async function GET() {
       const monthlyAssigned = state?.monthlyAssigned ?? 0
       const remainingQuota = Math.max(0, MONTHLY_QUOTA - monthlyAssigned)
 
-      const realAssignedLeads = await leadCol.countDocuments({ assignedProviders: { $in: [id] }, createdAt: month })
+      const realAssignedLeads = await leadCol.countDocuments({ assignedProviders: { $in: [id] }, createdAt: { $gte: monthStart, $lt: monthEnd } })
 
       const assignedLeads = await leadCol
         .find({ assignedProviders: { $in: [id] } })

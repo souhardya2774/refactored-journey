@@ -119,7 +119,7 @@ export async function resetProviderMonthlyQuotas(
   await ensureMonthlyStateRecords(stateCollection, month, session)
   await stateCollection.updateMany(
     { providerId: { $in: PROVIDER_IDS }, month },
-    { $set: { monthlyAssigned: 0, lastAssignedAt: new Date(0) } },
+    { $set: { monthlyAssigned: 0 } },
     { session },
   )
 }

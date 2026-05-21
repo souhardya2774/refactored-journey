@@ -21,6 +21,8 @@ export async function GET() {
       const monthlyAssigned = state?.monthlyAssigned ?? 0
       const remainingQuota = Math.max(0, MONTHLY_QUOTA - monthlyAssigned)
 
+      const realAssignedLeads = await leadCol.countDocuments({ assignedProviders: { $in: [id] }, createdAt: month })
+
       const assignedLeads = await leadCol
         .find({ assignedProviders: { $in: [id] } })
         .sort({ createdAt: -1 })
@@ -37,7 +39,7 @@ export async function GET() {
         id,
         name: `Provider ${id}`,
         remainingQuota,
-        monthlyAssigned,
+        monthlyAssigned: realAssignedLeads,
         leadsReceived: assignedLeads.length,
         assignedLeads: mappedLeads,
       }

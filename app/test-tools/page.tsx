@@ -160,7 +160,7 @@ export default function TestToolsPage() {
 
   return (
     <main className="p-6">
-      <Link href="/" className="text-sm text-slate-500 hover:text-slate-700">
+      <Link href="/" className="text-xl text-slate-500 hover:text-slate-700">
         &larr; Back to Home
       </Link>
       <div className="mb-6">

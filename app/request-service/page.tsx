@@ -2,6 +2,7 @@
 
 import { useState, type ChangeEvent, type SubmitEventHandler } from 'react';
 import Toast from '@/components/Toast';
+import Link from 'next/link';
 const RequestServicePage = () => {
   const [form, setForm] = useState({
     name: '',
@@ -69,6 +70,9 @@ const RequestServicePage = () => {
 
   return (
     <main className="p-8 font-sans flex flex-row justify-center ">
+      <Link href="/" className="absolute top-4 left-4 text-sm text-slate-500 hover:text-slate-700 transition">
+        &larr; Back to Home
+      </Link>
       <form onSubmit={handleSubmit} className="flex-1 max-w-lg grid gap-4 text-white">
         <h1 className="text-3xl font-semibold">Request Service</h1>
         <label className="grid gap-2 text-sm font-medium  ">

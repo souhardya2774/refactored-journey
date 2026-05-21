@@ -57,8 +57,8 @@ export default function DashboardPage() {
   return (
     <main className="p-6">
       <h1 className="text-2xl font-semibold mb-4">Dashboard</h1>
-      <Link href="/request-service" className="rounded-md bg-sky-600 px-4 py-2 text-white hover:bg-sky-700">
-        View Request Service
+      <Link href="/" className="text-sm text-slate-500 hover:text-slate-700">
+        &larr; Back to Home
       </Link>
       {loading && <p>Loading provider data...</p>}
       {error && <p className="text-red-600">{error}</p>}

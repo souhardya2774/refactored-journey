@@ -1,5 +1,6 @@
 "use client"
 
+import Link from 'next/link'
 import { useState } from 'react'
 
 const SERVICE_OPTIONS = ['service1', 'service2', 'service3'] as const
@@ -159,6 +160,9 @@ export default function TestToolsPage() {
 
   return (
     <main className="p-6">
+      <Link href="/" className="text-sm text-slate-500 hover:text-slate-700">
+        &larr; Back to Home
+      </Link>
       <div className="mb-6">
         <h1 className="text-2xl font-semibold">Test Tools</h1>
         <p className="text-sm text-slate-600 mt-2">
